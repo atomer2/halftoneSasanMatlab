@@ -1,7 +1,7 @@
 % main program of parallel sasanMethod
 tic
 
-testCode = 'with_ht_diffusion';
+testCode = 'with_ht_diffusion_block';
 mkdir(testCode);
 root = cd('.');
 % add path so we can invoke SasanMethod
@@ -39,18 +39,16 @@ for f = 3:n
     ngrayImg=ones(imgSize(1),imgSize(2))-grayImg;
     blurImageZeroIsWrite = imfilter(ngrayImg,gausFilter);
     
-    
-    
+    phaseInterval= 2 * blockSize;
     for phase=1:4
         %phase ONE:
         if phase == 1
             feedForwardZeroIsBlack = grayImg;
             feedForwardZeroIsWhite = ngrayImg;
-            
-            for i = 1:64:imgSize(1)
-                for j = 1:64:imgSize(2)
-                    feedForwardZeroIsBlack(i:i+31,j:j+31)=zeros(32);
-                    feedForwardZeroIsWhite(i:i+31,j:j+31)=zeros(32);
+            for i = 1:phaseInterval:imgSize(1)
+                for j = 1:phaseInterval:imgSize(2)
+                    feedForwardZeroIsBlack(i:i+blockSize-1,j:j+blockSize-1)=zeros(blockSize);
+                    feedForwardZeroIsWhite(i:i+blockSize-1,j:j+blockSize-1)=zeros(blockSize);
                 end
             end
             init_y=1;
@@ -59,31 +57,31 @@ for f = 3:n
         elseif phase == 2
             feedForwardZeroIsBlack = outputImg;
             feedForwardZeroIsWhite = noutputImg;
-            for i = 33:64:imgSize(1)
-                feedForwardZeroIsBlack(i:i+31,:)=grayImg(i:i+31,:);
-                feedForwardZeroIsWhite(i:i+31,:)=ngrayImg(i:i+31,:);
+            for i = blockSize+1:phaseInterval:imgSize(1)
+                feedForwardZeroIsBlack(i:i+blockSize-1,:)=grayImg(i:i+blockSize-1,:);
+                feedForwardZeroIsWhite(i:i+blockSize-1,:)=ngrayImg(i:i+blockSize-1,:);
             end
             init_y=1;
-            init_x=33;
+            init_x=blockSize+1;
             % phase THREE:
         elseif phase ==3
             feedForwardZeroIsBlack = outputImg;
             feedForwardZeroIsWhite = noutputImg;
-            for i = 33:64:imgSize(1)
-                for j = 33:64:imgSize(2)
-                    feedForwardZeroIsBlack(i:i+31,j:j+31)=grayImg(i:i+31,j:j+31);
-                    feedForwardZeroIsWhite(i:i+31,j:j+31)=ngrayImg(i:i+31,j:j+31);
+            for i = blockSize+1:phaseInterval:imgSize(1)
+                for j = blockSize+1:phaseInterval:imgSize(2)
+                    feedForwardZeroIsBlack(i:i+blockSize-1,j:j+blockSize-1)=grayImg(i:i+blockSize-1,j:j+blockSize-1);
+                    feedForwardZeroIsWhite(i:i+blockSize-1,j:j+blockSize-1)=ngrayImg(i:i+blockSize-1,j:j+blockSize-1);
                 end
             end
-            init_y=33;
+            init_y=blockSize+1;
             init_x=1;
             % phase FOUR:
             
         else
             feedForwardZeroIsBlack = outputImg;
             feedForwardZeroIsWhite = noutputImg;
-            init_y=33;
-            init_x=33;
+            init_y=blockSize+1;
+            init_x=blockSize+1;
             
         end
         
@@ -92,9 +90,9 @@ for f = 3:n
         feedForwardZeroIsBlack =imfilter(feedForwardZeroIsBlack,gausFilter);
         feedForwardZeroIsWhite =imfilter(feedForwardZeroIsWhite,gausFilter);
         
-        for i = init_y:64:imgSize(1)
-            for j = init_x:64:imgSize(2)
-                ndots=sum((sum(grayImg(i:i+31,j:j+31)))');
+        for i = init_y:phaseInterval:imgSize(1)
+            for j = init_x:phaseInterval:imgSize(2)
+                ndots=sum((sum(grayImg(i:i+blockSize-1,j:j+blockSize-1)))');
                 if ndots>blockSize*blockSize/2
                     zeroIsBlack=0;
                     dots=blockSize*blockSize-ndots;
@@ -103,15 +101,15 @@ for f = 3:n
                     dots=ndots;
                 end
                 if zeroIsBlack==1
-                    pre=feedForwardZeroIsBlack(i:i+31,j:j+31);
-                    tmp=SasanMethod(blurImageZeroIsBlack(i:i+31,j:j+31),gausFilter,pre,dots);
-                    outputImg(i:i+31,j:j+31)=tmp;
-                    noutputImg(i:i+31,j:j+31)=ones(blockSize)-tmp;
+                    pre=feedForwardZeroIsBlack(i:i+blockSize-1,j:j+blockSize-1);
+                    tmp=SasanMethod(blurImageZeroIsBlack(i:i+blockSize-1,j:j+blockSize-1),gausFilter,pre,dots);
+                    outputImg(i:i+blockSize-1,j:j+blockSize-1)=tmp;
+                    noutputImg(i:i+blockSize-1,j:j+blockSize-1)=ones(blockSize)-tmp;
                 else
-                    pre=feedForwardZeroIsWhite(i:i+31,j:j+31);
-                    tmp=SasanMethod(blurImageZeroIsWrite(i:i+31,j:j+31),gausFilter,pre,dots);
-                    outputImg(i:i+31,j:j+31)=ones(blockSize)-tmp;
-                    noutputImg(i:i+31,j:j+31)=tmp;
+                    pre=feedForwardZeroIsWhite(i:i+blockSize-1,j:j+blockSize-1);
+                    tmp=SasanMethod(blurImageZeroIsWrite(i:i+blockSize-1,j:j+blockSize-1),gausFilter,pre,dots);
+                    outputImg(i:i+blockSize-1,j:j+blockSize-1)=ones(blockSize)-tmp;
+                    noutputImg(i:i+blockSize-1,j:j+blockSize-1)=tmp;
                 end
             end
         end
@@ -126,7 +124,5 @@ for f = 3:n
 end
 
 cd(root);
-
-
 
 toc
