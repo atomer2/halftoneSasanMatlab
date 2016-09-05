@@ -41,9 +41,6 @@ for phase=1:4
                 feedForwardZeroIsWhite(i:i+31,j:j+31)=zeros(32);
             end
         end
-        
-        feedForwardZeroIsBlack =imfilter(feedForwardZeroIsBlack,gausFilter);
-        feedForwardZeroIsWhite =imfilter(feedForwardZeroIsWhite,gausFilter);
         init_y=1;
         init_x=1;
         % phase TWO:
@@ -54,9 +51,6 @@ for phase=1:4
             feedForwardZeroIsBlack(i:i+31,:)=grayImg(i:i+31,:);
             feedForwardZeroIsWhite(i:i+31,:)=ngrayImg(i:i+31,:);
         end
-        
-        feedForwardZeroIsBlack =imfilter(feedForwardZeroIsBlack,gausFilter);
-        feedForwardZeroIsWhite =imfilter(feedForwardZeroIsWhite,gausFilter);
         init_y=1;
         init_x=33;
         % phase THREE:
@@ -69,8 +63,6 @@ for phase=1:4
                 feedForwardZeroIsWhite(i:i+31,j:j+31)=ngrayImg(i:i+31,j:j+31);
             end
         end
-        feedForwardZeroIsBlack =imfilter(feedForwardZeroIsBlack,gausFilter);
-        feedForwardZeroIsWhite =imfilter(feedForwardZeroIsWhite,gausFilter);
         init_y=33;
         init_x=1;
         % phase FOUR:
@@ -78,14 +70,15 @@ for phase=1:4
     else
         feedForwardZeroIsBlack = outputImg;
         feedForwardZeroIsWhite = noutputImg;
-        feedForwardZeroIsBlack =imfilter(feedForwardZeroIsBlack,gausFilter);
-        feedForwardZeroIsWhite =imfilter(feedForwardZeroIsWhite,gausFilter);
         init_y=33;
         init_x=33;
-               
+        
     end
     
     zeroIsBlack=1;
+    
+    feedForwardZeroIsBlack =imfilter(feedForwardZeroIsBlack,gausFilter);
+    feedForwardZeroIsWhite =imfilter(feedForwardZeroIsWhite,gausFilter);
     
     for i = init_y:64:imgSize(1)
         for j = init_x:64:imgSize(2)
